@@ -1,0 +1,179 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style/main.css">
+    <title>COVID ANALIZER</title>
+</head>
+
+<body>
+    <div id="alert">
+
+    </div>
+
+    <div class="container table-responsive">
+        <div id="continents" class="row justify-content-center">
+            <div class="col-sm-8">
+                <table class="table table-striped">
+                    <thead>
+                        <tr id="continent-header">
+        
+                        </tr>
+                    </thead>
+                    <tbody id="continent-body">
+        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-sm-12 text-center">
+                <h6>Refresh in <span id="timer">
+                    01:00
+                </span></h6>
+            </div>
+        </div>
+    </div>
+
+    <div id="history-data" class="container">
+        <form id="history-form">
+            
+            <div class="row justify-content-center">
+                <div class="col-12 text-center">
+                    <h2>History of countries</h2>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-sm-4">
+                    <label class="form-label" for="date">Date from</label>
+                    <input id="dateFrom" type="date" class="form-control" name="dateFrom">
+                </div>
+                <div class="col-sm-4">
+                    <label class="form-label" for="date">Date to</label>
+                    <input id="dateTo" type="date" class="form-control" name="dateTo">
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+
+                <div class="col-12 text-center">
+                    <h5>Type</h5>
+                </div>
+
+                <div class="col-sm-4">
+                    <div class="form-check">
+                        <input type="radio" class="form-check-input" id="best" name="type"
+                            value="best" required>
+                        <label class="form-check-label" for="best">Best</label>
+                    </div>
+                </div>
+
+                <div class="col-sm-4">
+                    <div class="form-check">
+                        <input type="radio" class="form-check-input" id="worst" name="type" value="worst"
+                            required>
+                        <label class="form-check-label" for="worst">Worst</label>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-sm-4">
+                    <input type="number" id="countOfCountries" class="form-control" name="countOfCountries" placeholder="Count of countries" required>
+                </div>
+                <div class="col-sm-4">
+                    <button class="submit-reset btn btn-secondary" type="submit">Submit</button>
+                </div>
+
+            </div>
+
+            <div id="history" class="row justify-content-center">
+                <div class="col-sm-8">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr id="history-header">
+                
+                                </tr>
+                            </thead>
+                            <tbody id="history-body">
+                                
+                            </tbody>
+                            
+                        </table>
+                    </div>
+                </div>
+                
+            </div>
+        </form>
+    </div>
+
+    <div id="list-data" class="container">
+        <form id="list-form">
+            
+            <div class="row justify-content-center">
+                <div class="col-12 text-center">
+                    <h2>History of countries (from config)</h2>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-sm-4">
+                    <label class="form-label" for="date">Date from</label>
+                    <input id="dateFrom" type="date" class="form-control" name="dateFrom">
+                </div>
+                <div class="col-sm-4">
+                    <label class="form-label" for="date">Date to</label>
+                    <input id="dateTo" type="date" class="form-control" name="dateTo">
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-sm-8">
+                    <div id="countries-config" class="row justify-content-center">
+                    </div>
+                </div>
+                
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-sm-4">
+                            <select id="country-name" class="form-select" name="countryName">
+                                <option value hidden disabled selected>additional country</option>
+                            </select>
+                        </div>
+                <div class="col-sm-4">
+                    <button class="submit-reset btn btn-secondary" type="submit">Submit</button>
+                </div>
+
+            </div>
+
+            <div id="list" class="row justify-content-center">
+                <div class="col-sm-8">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr id="list-header">
+                
+                                </tr>
+                            </thead>
+                            <tbody id="list-body">
+                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <script src="dist/bundle.js"></script>
+</body>
+
+</html>
