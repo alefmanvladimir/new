@@ -21,7 +21,6 @@ export default class CovidAnalizer {
         const allCases = await this.#api.getAllCases()
         const countries = _.merge(allVaccines, allCases)
         const res = []
-        console.log(countries)
         for (let country in countries) {
             if (this.#validateCountry(countries[country])) {
                 if (!continents[countries[country].All.continent]) {
@@ -52,16 +51,10 @@ export default class CovidAnalizer {
         return res
     }
 
-    #validateCountry(country) {
-        const checkVaccines = country.All.people_vaccinated ? true : false
-        const checkDeaths = country.All.deaths ? true : false
-        const checkCases = country.All.confirmed ? true : false
-        const checkContinent = country.All.continent ? true : false
 
-        return checkVaccines && checkDeaths && checkCases && checkContinent
-    }
 
     async getWorstBestCountries(worstBest, number, dateFrom = new Date('2020-01-22'), dateTo) {
+        
         if (!dateTo) {
             dateTo = new Date()
             dateTo.setDate(dateTo.getDate() - 1)
@@ -69,73 +62,74 @@ export default class CovidAnalizer {
         const allDeaths = await this.#api.getHistory('deaths')
         const allConfirmed = await this.#api.getHistory('confirmed')
         const allVaccines = await this.#api.getAllVaccines()
-        let countries = []
-        for (let country in allDeaths) {
-            if (allVaccines[country] && allDeaths[country] && allConfirmed[country]) {
-                this.#putCountry(
-                    countries,
-                    country,
-                    allDeaths[country].All,
-                    allConfirmed[country].All,
-                    allVaccines[country].All,
-                    dateFrom,
-                    dateTo)
-            }
-        }
-        return this.#sort(countries, worstBest, number)
+        const countries = this.#mergeCountries(allDeaths, allConfirmed, allVaccines, dateFrom, dateTo)
+        return this.#sortAndTake(countries, worstBest, number)
     }
 
-    async getChosenCountries(countries = ["Germany", "United Kingdom", "US", "Israel", "Russia", "Ukraine"], dateFrom = new Date('2020-01-22'), dateTo) {
+    async getChosenCountries(countries, dateFrom = new Date('2020-01-22'), dateTo) {
+        
         if (!dateTo) {
             dateTo = new Date()
             dateTo.setDate(dateTo.getDate() - 1)
         }
-        let res = []
+        const allDeaths = []
+        const allConfirmed = []
+        const allVaccines = []
         for (let i = 0; i < countries.length; i++) {
-            const deaths = await this.#api.getHistoryCountry(countries[i], 'deaths')
-            const confirmed = await this.#api.getHistoryCountry(countries[i], 'confirmed')
-            const vaccines = await this.#api.getCountryVaccines(countries[i])
-
-            this.#putCountry(res, countries[i], deaths.All, confirmed.All, vaccines.All, dateFrom, dateTo)
+            allDeaths.push(await this.#api.getHistoryCountry(countries[i], 'deaths'))
+            allConfirmed.push(await this.#api.getHistoryCountry(countries[i], 'confirmed'))
+            allVaccines.push(await this.#api.getCountryVaccines(countries[i]))
         }
-        return this.#sort(res, true)
-
+        const res = this.#mergeCountries(allDeaths, allConfirmed, allVaccines, dateFrom, dateTo)
+        return this.#sortAndTake(res, true)
     }
 
-    async #sort(countries, best, number = countries.length) {
-        if (best) {
-            countries.sort((a, b) => {
-                const midRateFirst = (a.rateDeathsBefore + a.rateDeathsAfter) / 2
-                const midRateSecond = (b.rateDeathsBefore + b.rateDeathsAfter) / 2
-                return a.deathRate - b.deathRate
-            })
-        } else {
-            countries.sort((a, b) => {
-                const midRateFirst = (a.rateDeathsBefore + a.rateDeathsAfter) / 2
-                const midRateSecond = (b.rateDeathsBefore + b.rateDeathsAfter) / 2
-                return b.deathRate - a.deathRate
-            })
-        }
+    #validateCountry(country) {
+        
+        const checkVaccines = country.All.people_vaccinated ? true : false
+        const checkDeaths = country.All.deaths || country.All.datesDeath ? true : false
+        const checkCases = country.All.confirmed || country.All.datesConfirm ? true : false
+        const checkContinent = country.All.continent ? true : false
 
-        let res = []
-        for (let i = 0; i < number; i++) {
-            res.push(countries[i])
+        return checkVaccines && checkDeaths && checkCases && checkContinent
+    }
+    
+    #mergeCountries(allDeaths, allConfirmed, allVaccines, dateFrom, dateTo){
+        
+        const res = []
+        const mergeDates = (firstValue, secondValue)=>{
+            let res = firstValue
+            res.All.datesConfirm = firstValue.All.dates
+            res.All.datesDeath = secondValue.All.dates
+            delete res.All.dates
+            return res
+        }
+        const mergeRes = _.merge(_.mergeWith(allConfirmed, allDeaths, mergeDates), allVaccines)
+        for (let country in mergeRes) {
+            if (this.#validateCountry(mergeRes[country])) {
+                this.#fillCountry(
+                    res,
+                    mergeRes[country].All.country,
+                    mergeRes[country],
+                    dateFrom,
+                    dateTo)
+            }
         }
         return res
     }
 
-    #putCountry(countries, countryName, deathData, confirmData, vaccineData, dateFrom, dateTo) {
+    #fillCountry(result, countryName, country, dateFrom, dateTo) {
         dateFrom = dateFrom.toISOString().substring(0, 10)
         dateTo = dateTo.toISOString().substring(0, 10)
-        const deathsBefore = deathData.dates[dateFrom]
-        const deathsAfter = deathData.dates[dateTo]
-        const deathRate = (deathsAfter - deathsBefore) / deathData.population
+        const deathsBefore = country.All.datesDeath[dateFrom]
+        const deathsAfter = country.All.datesDeath[dateTo]
+        const deathRate = (deathsAfter - deathsBefore) / country.All.population
 
-        const confirmedBefore = confirmData.dates[dateFrom]
-        const confirmedAfter = confirmData.dates[dateTo]
+        const confirmedBefore = country.All.datesConfirm[dateFrom]
+        const confirmedAfter = country.All.datesConfirm[dateTo]
 
-        const vaccine = vaccineData.people_vaccinated
-        countries.push({
+        const vaccine = country.All.people_vaccinated
+        result.push({
             country: countryName,
             deaths: deathsAfter - deathsBefore,
             deathRate,
@@ -145,4 +139,19 @@ export default class CovidAnalizer {
             dateTo
         })
     }
+
+    async #sortAndTake(countries, best, number = countries.length) {
+        if (best) {
+            countries.sort((a, b) => {
+                return a.deathRate - b.deathRate
+            })
+        } else {
+            countries.sort((a, b) => {
+                return b.deathRate - a.deathRate
+            })
+        }
+        return _.take(countries, number)
+    }
+
+    
 }

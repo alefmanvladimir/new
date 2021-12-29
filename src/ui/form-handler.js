@@ -42,10 +42,10 @@ export default class FormHandler {
     async #onSubmit(handlerFunc, event) {
         event.preventDefault()
         const obj = this.#inputElements.reduce(createObject, {})
+        console.log(obj)
         this.#alertElement ? this.#alertElement.innerHTML = '' : ''
         try {
             await handlerFunc(obj)
-            this.#formElement.reset()
         } catch (e) {
             console.log(e)
             this.#showAlert(e)
@@ -64,6 +64,7 @@ export default class FormHandler {
 }
 
 function createObject(obj, elem) {
+    console.log(elem)
     switch (elem.type) {
         case "radio": if (elem.checked) {
             obj[elem.name] = elem.value

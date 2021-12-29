@@ -10,13 +10,27 @@ import FormHandler from "./ui/form-handler"
 import data from './config/data.json'
 import Timer from "./services/timer"
 
+
+// creating required objects
 const analizer = new CovidAnalizer(countryProvider)
 
 const tableContinents = new TableHandler('continent-header', 'continent-body', ['continent', 'rateOfCases', 'rateOfDeath', 'rateOfVaccine'])
 const formHistory = new FormHandler('history-form')
 const tableHistory = new TableHandler('history-header', 'history-body', ['country', 'cases', 'deaths', 'vaccine', 'dateFrom', 'dateTo'])
+const formList = new FormHandler('list-form')
 const tableList = new TableHandler('list-header', 'list-body', ['country', 'cases', 'deaths', 'vaccine', 'dateFrom', 'dateTo'])
-FormHandler.fillCheckboxes('countries-config', data.countries)
+const timer = new Timer('timer')
+// functions 
+
+const fillContinents = async ()=>{
+    tableContinents.clear()
+    showSpinner('continents')
+    const continents = await analizer.getContinents()
+    hideSpinner('continents')
+    continents.forEach(c=>tableContinents.addRow(c))
+    
+}
+
 const showSpinner = parentElemId=>{
     const elem = document.getElementById(parentElemId)
     const spinner = document.createElement("div")
@@ -34,23 +48,7 @@ const hideSpinner = parentElemId=>{
     const spinner = document.getElementById(`${parentElemId}-spinner`)
     spinner.remove()
 }
-analizer.getAllCountries().then(response=>{
-    FormHandler.fillOptions("country-name", response)
-})
 
-const formList = new FormHandler('list-form')
-const fillContinents = async ()=>{
-    tableContinents.clear()
-    showSpinner('continents')
-    const continents = await analizer.getContinents()
-    hideSpinner('continents')
-    continents.forEach(c=>tableContinents.addRow(c))
-    
-}
-fillContinents()
-
-const timer = new Timer('timer')
-timer.start(1)
 async function refreshContinents(){
     
     console.log('finish')
@@ -59,8 +57,20 @@ async function refreshContinents(){
     timer.start(1)
     document.addEventListener('finish', refreshContinents)
 }
+
+// Actions
+
+fillContinents()
+
+timer.start(1)
+
 document.addEventListener('finish', refreshContinents)
 
+analizer.getAllCountries().then(response=>{
+    FormHandler.fillOptions("country-name", response)
+})
+
+FormHandler.fillCheckboxes('countries-config', data.countries)
 
 formHistory.addHandler(async data=>{
     tableHistory.clear()
@@ -91,7 +101,7 @@ formList.addHandler(async data=>{
     } else {
         dateTo = new Date(data.dateTo)
     }
-
+    console.log(data)
     const countries = data.countries
     if(data.countryName){
         countries.push(data.countryName)
